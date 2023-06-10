@@ -139,4 +139,6 @@ for (i in seq_along(variables)) {
   result_df[i, ] = c(var, correlations)
 }
 
-
+write.csv(log_df2, "log_dataset.csv", row.names = FALSE)
+write.csv(cycle2, "cycle_dataset.csv", row.names = FALSE)
+getwd()

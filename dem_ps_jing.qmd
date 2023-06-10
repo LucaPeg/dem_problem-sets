@@ -1,0 +1,196 @@
+# Exercise 2
+## a) Replicate Table 1 and 2 for the US economy from - ideally - 1950 Q1 to the newest data you can find(either 2020 or 2023). You can use real GDP instead of GNP if you want
+
+### Solution 
+#### Import libraries needed
+library(fredr)
+library(dplyr)
+library(ggplot2)
+library(purrr)
+library(readxl)
+library(tidyverse)
+library(mFilter)
+
+## Autentication to retrieve the data from FRED website
+fredr_set_key("1274c2b057a5fbb5e60a19ab3524e4e6")
+
+## retrieve series observations
+#GNP
+gnp <- fredr(
+    series_id = 'GNP',
+    observation_start = as.Date("1964-01-01"),
+    observation_end = as.Date("2023-01-01"),
+    frequency = 'q',
+    units = "log"
+)
+GNP <- gnp[-c(2, 4, 5)]
+
+# CND
+cnd <- fredr(
+    series_id = 'PCND',
+    observation_start = as.Date("1964-01-01"),
+    observation_end = as.Date("2023-01-01"),
+    frequency = 'q',
+    units = "log"
+)
+CND <- cnd[-c(2, 4, 5)]
+
+# CD
+cd <- fredr(
+    series_id = 'PCDG',
+    observation_start = as.Date("1964-01-01"),
+    observation_end = as.Date("2023-01-01"),
+    frequency = 'q',
+    units = "log"
+)
+
+CD <- cd[-c(2, 4, 5)]
+#AVE_H
+ave_h <- fredr(
+    series_id = 'AWHNONAG',
+    observation_start = as.Date("1964-01-01"),
+    observation_end = as.Date("2023-01-01"),
+    frequency = 'q',
+    units = "log"
+)
+AVE_H <- ave_h[-c(2, 4, 5)]
+
+#AVE_W
+ave_w <- fredr(
+    series_id = 'AHETPI',
+    observation_start = as.Date("1964-01-01"),
+    observation_end = as.Date("2023-01-01"),
+    frequency = 'q',
+    units = "log"
+)
+AVE_W <- ave_w[(-c(2,4,5))]
+
+#find H and L (transform the data as i wanted)
+Data <- read_excel("C:/Users/jingw/OneDrive/Desktop/problem set DEM/total-economy-hours-employment.xlsx", sheet = 'Quarterly')
+l <- Data |> slice(0:1)
+L <- data.frame(t(l[-c(1:73)]), stringsAsFactors = FALSE)
+names(L)[names(L)=="t.l..c.1.73..."] <- "value"
+L$value <- log(L$value)   # taking the natural logarithm
+
+
+h <- Data |> slice(16:16)
+H <- data.frame(t(h[-c(1:73)]), stringsAsFactors = FALSE)
+names(H)[names(H)=="t.h..c.1.73..."] <- "value"
+H$value <- log(H$value)   # taking the natural logarithm
+
+# compute GNP / L 
+"GNP/L" <- data.frame(GNP$'value' - L$'value')
+
+# I have to put together all the data that i have in the period 01/01/1964 ~ 01/01/2023
+df<- merge(GNP,CND,by="date") # put together GNP and CND
+names(df)[names(df)=="value.x"] <- "GNP"                   #change colname
+names(df)[names(df)=="value.y"] <- "CND"                   #change colname
+
+df1<- merge(df, CD,by="date") # add CD
+names(df1)[names(df1)=="value"] <- "CD"                    #change colname
+
+
+df2 <- add_column(df1, H)     # add H
+names(df2)[names(df2)=="value"] <- "H"                     #change colname
+
+df3 <- merge(df2, AVE_H, by="date") # add AVE_H
+names(df3)[names(df3)=="value"] <- "AVE_H"                 #change colname
+
+df4 <- add_column(df3, L)
+names(df4)[names(df4)=="value"] <- "L"                      #change colname
+
+df5 <- add_column(df4, `GNP/L`)
+names(df5)[names(df5)=="GNP.value...L.value"] <- "GNP/L"    #change colname
+
+df6 <- merge(df5, AVE_W,by="date")
+names(df6)[names(df6)=="value"] <- "AVE_W"                  #change colname
+
+
+
+
+#Extract the trend and cycle components of the series, in order to be able to study "stylised facts of the business cycle", as requested by the exercise.
+
+cycle1 <- data.frame(matrix(nrow = 237, ncol = 0))
+trend1 <- data.frame(matrix(nrow = 237, ncol = 0))
+
+
+for (i in colnames(df6[2:9])) {
+hp_filter <- hpfilter(df6[i],freq=1600,type="lambda",drift=FALSE)
+cyclical <- hp_filter$cycle
+trendy <- hp_filter$trend
+cycle1 <- cycle1 %>%
+add_column(i = cyclical)
+trend1 <- trend1 %>%
+add_column(i = trendy)
+}
+
+
+# Now i have to add another column to cycle1 and trend1
+a <- df |> select(date)
+cycle <- bind_cols(a, cycle1) 
+trend <- bind_cols(a, trend1)
+
+# framework of the final table
+columns <- c("variables", "sd%", "t-4", "t-3", "t-2", "t-1", "t", "t+1", "t+2", "t+3", "t+4")
+table1 <- data.frame(matrix(nrow = 8, ncol = 11))
+colnames(table1) <- columns
+
+# calculate sd
+# compute standard deviations
+sd <- c()
+
+for (val in colnames(cycle1)) {
+sd <- c(sd,sd(as.vector(cycle1[[val]]))*100)
+}
+
+c <- round(sd, digits = 2)
+table1$'sd%' <- c
+
+# add the column of all the variables
+d <- as.vector(colnames(df6[2:9]))
+table1$variables <- d
+
+# compute all the cross-correlations (define a function called crosscorr)
+crosscorr <- function(datax, datay){
+corr <- c()
+pos <- ccf(datax, datay,type = "correlation")
+neg <- rev(ccf(rev(datax), rev(datay), type = "correlation"))
+for (n in as.vector(rev(neg[4:1])){
+corr <- n
+}
+for (j in as.vector(pos[1:5])){
+corr <- j
+}
+return(corr)
+}
+
+# fill the table with cross correlations
+for (val in colnames(cycle1)){
+table1 <- rownames(table1[3:11]) = crosscorr(cycle1["i"], cycle1[2:7])
+}
+
+?????????????
+crosscorr <- function(cycle1, trend1, response) {
+  
+corr <- list()
+for (var in colnames(cycle1)) {
+    
+neg <- ccf(cycle1[, var][length(cycle1[, var]):1], cycle1[, response][length(cycle1[, response]):1], adjust = FALSE)$acf[length(cycle1[, var]):(length(cycle1[, var])-4)]
+    
+pos <- ccf(cycle1[, var], cycle1[, response], adjust = FALSE)$acf[1:5]
+    
+ccf_output <- c(neg, pos)
+cross_correlations[[var]] <- ccf_output
+}
+return(crorr)
+}
+
+# fill the table with cross correlations
+for (val in colnames(cycle1)){
+table1 <- rownames(table1[3:11]) = crosscorr(cycle1["i"], cycle1[2:7])
+}
+corr <- crosscorr()
+
+cross_correlations = cross_correlation(cycle_df, 'GDP')
+
+
