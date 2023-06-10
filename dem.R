@@ -57,11 +57,11 @@ log_df$date <- as.yearqtr(log_df$date, format = "%Y Q%q")
 
 # Apply the Hodrick-Prescott filter
 # Initialize two empty dataframes, one for each BC component
-cycle1 = data.frame(matrix(nrow = 237, ncol = 0))
-trend1 = data.frame(matrix(nrow = 237, ncol = 0))
+#cycle1 = data.frame(matrix(nrow = 237, ncol = 0))
+#trend1 = data.frame(matrix(nrow = 237, ncol = 0))
 
 # Filter through HP filter and extract both cyclical and trend components
-for (colname in colnames(log_df[2:15])) {
+#for (colname in colnames(log_df[2:15])) {
   hp_filter <- hpfilter(log_df[[colname]], freq = 1600, type = "lambda", drift = FALSE)
   #extract the two components
   cyclical <- hp_filter$cycle
@@ -70,6 +70,7 @@ for (colname in colnames(log_df[2:15])) {
   cycle1[[colname]] <- cyclical
   trend1[[colname]] <- trend
 }
+
 
 # ISSUE: the cyclical and trend components of interest rate and tfp is NAs.
 # 1) reasons: is it because they didn't underwent log transf, and are thus negative?
@@ -96,3 +97,46 @@ for (colname in colnames(log_df2[2:15])) {
 }
 
 # yay, issue fixed!the NAs were the problem
+
+# Let's build the tables
+
+# Calculate standard deviations
+std_deviations <- apply(cycle2, 2, sd)
+
+# Create a final df, the one that we will print at the end
+df_final <- data.frame(Column = names(std_deviations),
+                     SD = std_deviations,
+                     row.names = names(cycle2))
+colnames(df_final) = c("Variable", "SD")
+
+
+# To produce the tables I will compute all cross correlations, then I'll drop the ones I'm not interested in
+
+# CROSS CORRELATIONS
+
+# Retrieve columns and rows
+variables = colnames(cycle2)
+lags = -4:4
+
+# Initialize empty df
+result_df <- data.frame(Variable = character(length(variables)),
+                        t_4 = numeric(length(variables)),
+                        t_3 = numeric(length(variables)),
+                        t_2 = numeric(length(variables)),
+                        t_1 = numeric(length(variables)),
+                        t = numeric(length(variables)),
+                        t_1 = numeric(length(variables)),
+                        t_2 = numeric(length(variables)),
+                        t_3 = numeric(length(variables)),
+                        t_4 = numeric(length(variables)),
+                        stringsAsFactors = FALSE)
+
+# Compute actual cross-correlations
+for (i in seq_along(variables)) {
+  var = variables[i]
+  correlations = ccf(cycle2$gnp, cycle2[[var]], lag.max = max(abs(lags)), plot = FALSE)$acf
+  correlations = correlations[lags + 5]
+  result_df[i, ] = c(var, correlations)
+}
+
+
