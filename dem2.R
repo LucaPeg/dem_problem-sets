@@ -127,14 +127,21 @@ add_var$date <- format(as.Date(as.yearmon(add_var$date), frac = 0), "%Y-%m-%d") 
 add_var$date <-as.Date(add_var$date, format = "%Y-%m-%d") #cast it into date type
 
 # join everything
-list_df = list(GNP, CND, CD, AveH, C, I, r, Y, add_var)
+list_df <- list(GNP, CND, CD, AveH, C, I, r, Y, add_var)
 df <- list_df %>% reduce(inner_join, by='date')
 
 # create the last variable GNP/L: output per worker
 df$GNP_L <- df$GNP - df$L #using - because we're dealing with logs
 #this creates a negative number since logGNP<logL.
-#To deal with this I could transform everythin into single dollars and # people
 # Or I could leave it as is, since GNP is in billion of dollars, while L is in thousands of people.
+
+# Find Y/N (I forgot about this and now I have to go back)
+# I could divide Y by AveH, but it feels weird. So I'm going to get per capita hours, then use it to divide Y
+N <- df$L - df$H # hours per capita
+df$Y_N <- df$Y- N # Y per capita / H per capita
+
+# I create another varible, which is the same but obtained with Weeekly Hours
+df$Y_N2 <- df$Y-df$AveH
 
 # I spotted a weird issue. real GNP in 1990 Q1 is 9.400.000. Its ln should be 16, while its log10 should be 7.
 # My result is 9, which I don't really understand.
@@ -147,7 +154,7 @@ df <- df[1:(nrow(df) - 1), ]
 cycle = data.frame(matrix(nrow = 230, ncol = 0))
 trend = data.frame(matrix(nrow = 230, ncol = 0))
 
-for (colname in colnames(df[2:14])) { #take everthing but the date
+for (colname in colnames(df[2:16])) { #take everthing but the date
   hp_filter <- hpfilter(df[[colname]], freq = 1600, type = "lambda", drift = FALSE)
   #extract the two components
   cyclical_comp <- hp_filter$cycle
@@ -167,7 +174,7 @@ for (colname in colnames(df[2:14])) { #take everthing but the date
 # Make a big table, then drop the relevant rows to achieve the two final tables
 
 columns <- c("Variables", "sd%", "t-4", "t-3", "t-2", "t-1", "t", "t+1", "t+2", "t+3", "t+4")
-table_tot <- data.frame(matrix(nrow = 13, ncol = 11))
+table_tot <- data.frame(matrix(nrow = 15, ncol = 12))
 colnames(table_tot) <- columns
 
 # Get the Standard Deviations
@@ -186,7 +193,7 @@ table_tot$`sd%` <- standard_dev
 
 # Provisional table for cross correlations
 lags <- c("t-4", "t-3", "t-2", "t-1", "t", "t+1", "t+2", "t+3", "t+4")
-cross_correlations <- data.frame(matrix(nrow = 13, ncol = 9))
+cross_correlations <- data.frame(matrix(nrow = 15, ncol = 9))
 colnames(cross_correlations) <- lags
 rownames(cross_correlations) <- colnames(cycle)
 
@@ -205,7 +212,7 @@ cross_correlations <- round(cross_correlations, digits = 2)
 # Merge the two tables to get the final one
 # Provisional table for cross correlations
 lags <- c("t-4", "t-3", "t-2", "t-1", "t", "t+1", "t+2", "t+3", "t+4")
-cross_correlations <- data.frame(matrix(nrow = 13, ncol = 9))
+cross_correlations <- data.frame(matrix(nrow = 15, ncol = 9))
 colnames(cross_correlations) <- lags
 rownames(cross_correlations) <- colnames(cycle)
 
@@ -238,6 +245,8 @@ table_final$'sd%' <- round(table_final$'sd%', digits = 2)
 
 # Variables we want in the first table
 var_1st = c("GNP", "CND","CD","H","AveH",'L',"GNP_L","w")
-var_2nd = c("Y", "C","I","AveH","Y_N","w","r","d_tfp")
+var_2nd = c("Y", "C","I","AveH","Y_N", "Y_N2","w","r","d_tfp")
 # I realise I'm missing Y/N
-first_table = subset(table_final[-c()])
+first_table = subset(table_final[var_1st,])
+
+# SECOND TABLE : I MUST DO THE AUTOCORRELATIONS ETC BUT WITH Y, NOT GNP
