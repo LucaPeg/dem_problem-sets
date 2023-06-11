@@ -140,8 +140,11 @@ df$GNP_L <- df$GNP - df$L #using - because we're dealing with logs
 N <- df$L - df$H # hours per capita
 df$Y_N <- df$Y- N # Y per capita / H per capita
 
-# I create another varible, which is the same but obtained with Weeekly Hours
+# I create another variable, which is the same but obtained with Weeekly Hours
 df$Y_N2 <- df$Y-df$AveH
+
+#I add also N as a robustness check got from H/L
+df$N <- N
 
 # I spotted a weird issue. real GNP in 1990 Q1 is 9.400.000. Its ln should be 16, while its log10 should be 7.
 # My result is 9, which I don't really understand.
@@ -154,7 +157,7 @@ df <- df[1:(nrow(df) - 1), ]
 cycle = data.frame(matrix(nrow = 230, ncol = 0))
 trend = data.frame(matrix(nrow = 230, ncol = 0))
 
-for (colname in colnames(df[2:16])) { #take everthing but the date
+for (colname in colnames(df[2:17])) { #take everthing but the date
   hp_filter <- hpfilter(df[[colname]], freq = 1600, type = "lambda", drift = FALSE)
   #extract the two components
   cyclical_comp <- hp_filter$cycle
@@ -167,14 +170,14 @@ for (colname in colnames(df[2:16])) { #take everthing but the date
 # I still think there is a mistake because my GNP log is TOO CLOSE (goes from like 8 to 9)
 # 1964 Q1 3.889.944 -> ln = 15.17, log10 = 6.58, mydf = 8.266
 # 2021 Q2 17.671.563 -> ln = 16.76  log10= 7.29, mydf = 9.866
-# ok evidently the shift is the same. Good since I have to measure the cross corr or sd
+# ok evidently the shift is the same. Good since I have to measure the cross corr/sd
 
 # To de-trend our variables we'll use the cyclical component ONLY
 
 # Make a big table, then drop the relevant rows to achieve the two final tables
 
 columns <- c("Variables", "sd%", "t-4", "t-3", "t-2", "t-1", "t", "t+1", "t+2", "t+3", "t+4")
-table_tot <- data.frame(matrix(nrow = 15, ncol = 12))
+table_tot <- data.frame(matrix(nrow = 16, ncol = 12))
 colnames(table_tot) <- columns
 
 # Get the Standard Deviations
@@ -193,7 +196,7 @@ table_tot$`sd%` <- standard_dev
 
 # Provisional table for cross correlations
 lags <- c("t-4", "t-3", "t-2", "t-1", "t", "t+1", "t+2", "t+3", "t+4")
-cross_correlations <- data.frame(matrix(nrow = 15, ncol = 9))
+cross_correlations <- data.frame(matrix(nrow = 16, ncol = 9))
 colnames(cross_correlations) <- lags
 rownames(cross_correlations) <- colnames(cycle)
 
@@ -212,7 +215,7 @@ cross_correlations <- round(cross_correlations, digits = 2)
 # Merge the two tables to get the final one
 # Provisional table for cross correlations
 lags <- c("t-4", "t-3", "t-2", "t-1", "t", "t+1", "t+2", "t+3", "t+4")
-cross_correlations <- data.frame(matrix(nrow = 15, ncol = 9))
+cross_correlations <- data.frame(matrix(nrow = 16, ncol = 9))
 colnames(cross_correlations) <- lags
 rownames(cross_correlations) <- colnames(cycle)
 
@@ -245,8 +248,14 @@ table_final$'sd%' <- round(table_final$'sd%', digits = 2)
 
 # Variables we want in the first table
 var_1st = c("GNP", "CND","CD","H","AveH",'L',"GNP_L","w")
-var_2nd = c("Y", "C","I","AveH","Y_N", "Y_N2","w","r","d_tfp")
-# I realise I'm missing Y/N
+var_2nd = c("Y", "C","I","AveH","Y_N", "Y_N2","w","r","d_tfp","N")
+
 first_table = subset(table_final[var_1st,])
 
 # SECOND TABLE : I MUST DO THE AUTOCORRELATIONS ETC BUT WITH Y, NOT GNP
+# Actually it's the same thing, stupid
+# Still, let's subset "cycle" into the variables we need for table 2, then compute everything
+
+cycle2 <- subset(cycle[,var_2nd])
+
+
