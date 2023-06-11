@@ -265,13 +265,14 @@ cycle2 <- subset(cycle[,var_2nd])
 # 4) compute contemporaneous correlation with output
 
 # (1)
-
 standard_dev2 <- apply(cycle2,2, sd )
-standard_dev2 <- standard_dev2*100
+standard_dev2 <- ifelse(names(standard_dev2) == "r", standard_dev2, standard_dev2 * 100)
+standard_dev2 <-  round(standard_dev2, digits = 2)
+
 
 # (2)
-ssd2 <- standard_dev2/standard_dev2['Y']
-
+ssd2 <- standard_dev2 / standard_dev2[1]
+ssd2 <-  round(ssd2, digits = 2)
 # (3)
 
 autocorrelation <- data.frame(    # initialize a data_frame to store autocorrelation results
@@ -286,7 +287,7 @@ for (variable in colnames(cycle2)) {
                            data.frame(Column = variable,
                                       Autocorrelation = acf_result$acf[2])) #2 because we are interested in lag 1, not the zero as well
 }
-
+autocorrelation$Autocorrelation <- round(autocorrelation$Autocorrelation, digits = 2)
 # (4)
 
 #contemporeneous correlations with output I guess it means to compute, for each period, the correlation of a given variable with Y
@@ -314,8 +315,6 @@ for (variable in colnames(cycle2)) {
 }
 
 # The two results are perfectly the same. I'll round the first one up
-
-#this could've probably been done in one way
 corr_Y$corr <- round(corr_Y$corr, digits = 2)
 
 # Only thing left is to merge everything!
@@ -335,7 +334,7 @@ colnames(autocorrelation) <-  c("Variable", "First Order Auto-Correlation")
 
 # Join everything on the col "Variable"
 list_table2_vars <- list(table2, autocorrelation, corr_Y)
-table2 <- list_table2_vars %>% reduce(inner_join, by = 'Variable')  
+table2 <- list_table2_vars %>% reduce(inner_join, by = 'Variable')
 
 table2
 
