@@ -209,7 +209,7 @@ cross_correlations <- data.frame(matrix(nrow = 13, ncol = 9))
 colnames(cross_correlations) <- lags
 rownames(cross_correlations) <- colnames(cycle)
 
-# Basic function for cross correlations
+# Get the cross correlations
 for (variable in colnames(cycle)) {
   cc <- ccf(cycle$GNP, cycle[, variable], lag.max = 4, plot = FALSE)
   
@@ -233,3 +233,11 @@ table_tot <- subset(table_tot[,1:2])
 table_final <- cbind(table_tot, cross_correlations,  row.names = rownames(cross_correlations))
 # They check out, but I forgot to round up sd$
 table_final$'sd%' <- round(table_final$'sd%', digits = 2)
+
+#Got the final table! Now I have to drop some columns to get the two necessary ones.
+
+# Variables we want in the first table
+var_1st = c("GNP", "CND","CD","H","AveH",'L',"GNP_L","w")
+var_2nd = c("Y", "C","I","AveH","Y_N","w","r","d_tfp")
+# I realise I'm missing Y/N
+first_table = subset(table_final[-c()])
