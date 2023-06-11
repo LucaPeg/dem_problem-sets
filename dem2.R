@@ -250,7 +250,7 @@ table_final$'sd%' <- round(table_final$'sd%', digits = 2)
 var_1st = c("GNP", "CND","CD","H","AveH",'L',"GNP_L","w")
 var_2nd = c("Y", "C","I","AveH","Y_N", "Y_N2","w","r","d_tfp","N")
 
-first_table = subset(table_final[var_1st,])
+first_table <- subset(table_final[var_1st,])
 
 # SECOND TABLE : I MUST DO THE AUTOCORRELATIONS ETC BUT WITH Y, NOT GNP
 # Actually it's the same thing, stupid
@@ -258,4 +258,84 @@ first_table = subset(table_final[var_1st,])
 
 cycle2 <- subset(cycle[,var_2nd])
 
+# On cycle2 we have to carry out the following operations:
+# 1) compute std dev
+# 2) compute relative std dev
+# 3) compute first order autocorrelation
+# 4) compute contemporaneous correlation with output
+
+# (1)
+
+standard_dev2 <- apply(cycle2,2, sd )
+standard_dev2 <- standard_dev2*100
+
+# (2)
+ssd2 <- standard_dev2/standard_dev2['Y']
+
+# (3)
+
+autocorrelation <- data.frame(    # initialize a data_frame to store autocorrelation results
+  Column = character(), # where the variable name will go
+  Autocorrelation = numeric(), #where the value will go, this way I will avoid the previous mess
+  stringsAsFactors = FALSE 
+)
+
+for (variable in colnames(cycle2)) {
+  acf_result <- acf(cycle2[[variable]], lag.max = 1, plot = FALSE) #computes autocorrelations
+  autocorrelation <- rbind(autocorrelation,  # binds the different rows to the initialized df (that for each loop gains a row)
+                           data.frame(Column = variable,
+                                      Autocorrelation = acf_result$acf[2])) #2 because we are interested in lag 1, not the zero as well
+}
+
+# (4)
+
+#contemporeneous correlations with output I guess it means to compute, for each period, the correlation of a given variable with Y
+corr_Y <- data.frame(
+  Column = character(),
+  corr = numeric(),
+  stringsAsFactors = FALSE
+)
+
+for (variable in colnames(cycle2)) {
+  corr_result <- ccf(cycle2$Y, cycle2[[variable]], lag.max = 0, plot = FALSE) # 0 lag <- contemporaneuos correlation 
+  corr_Y <- rbind(corr_Y, data.frame(Column = variable, corr = corr_result$acf))
+}
+
+# can I use just cor instead of the ccf? Let's see if the results differ
+corr_Y2 <- data.frame(
+  Column = character(),
+  corr = numeric(),
+  stringsAsFactors = FALSE
+)
+
+for (variable in colnames(cycle2)) {
+  corr_result2 <- cor(cycle2$Y, cycle2[[variable]])
+  corr_Y2 <- rbind(corr_Y2, data.frame(Column = variable, corr = corr_result2))
+}
+
+# The two results are perfectly the same. I'll round the first one up
+
+#this could've probably been done in one way
+corr_Y$corr <- round(corr_Y$corr, digits = 2)
+
+# Only thing left is to merge everything!
+# Elements that I have to merge: corr_Y, autocorrelation, ssd2, standard_dev2
+
+#I will create a df with standard_dev2 and ssd2, since those are arrays, not df
+table2 <- data.frame(
+  "Variable" = colnames(cycle2),
+  "SD" = standard_dev2,
+  "Relative_SD" = ssd2
+)
+
+#fix names of the corr_Y and autocorrelation
+
+colnames(corr_Y) <- c("Variable", "Contemporaneous Correlation with Y")
+colnames(autocorrelation) <-  c("Variable", "First Order Auto-Correlation")
+
+# Join everything on the col "Variable"
+list_table2_vars <- list(table2, autocorrelation, corr_Y)
+table2 <- list_table2_vars %>% reduce(inner_join, by = 'Variable')  
+
+table2
 
