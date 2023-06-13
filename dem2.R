@@ -338,3 +338,15 @@ table2 <- list_table2_vars %>% reduce(inner_join, by = 'Variable')
 
 table2
 
+# There is a question that asks for relation between Y and G. Thus I get G
+
+GNP <- fredr(
+  series_id = 'A955RX1Q020SBEA',
+  observation_start = as.Date("1971-01-01"),
+  observation_end = as.Date("2023-01-01"),
+  frequency = 'q', #quarterly data
+  units = "log"
+)
+#this produces a 5 col tibble, we keep only the date and the values
+GNP <- GNP[-c(2, 4, 5)]
+colnames(GNP) <- c("date","GNP")
