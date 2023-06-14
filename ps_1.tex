@@ -1,0 +1,394 @@
+\documentclass[a4paper,10pt]{report}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{fancyhdr}
+\usepackage{bm}
+\usepackage{cancel}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage[english]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage[shortlabels]{enumitem}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\DeclarePairedDelimiter{\abs}{|}{|}
+\DeclarePairedDelimiter{\prodin}{\langle}{\rangle}
+\newcommand{\nnorm}[1]{\Vert#1\Vert}
+\usepackage{color}
+\definecolor{dg}{RGB}{2,101,15}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{multicol}
+\usepackage{bbm}
+\usepackage[backend=bibtex]{biblatex}
+\addbibresource{ref.bib}
+
+%per codici appendice
+\usepackage{listings}
+\definecolor{mygreen}{RGB}{28,172,0} % color values Red, Green, Blue
+\definecolor{mylilas}{RGB}{170,55,241}
+
+\lstset{language=R,%
+	%basicstyle=\color{red},
+	breaklines=true,%
+	morekeywords={matlab2tikz},
+	keywordstyle=\color{blue},%
+	morekeywords=[2]{1}, keywordstyle=[2]{\color{black}},
+	identifierstyle=\color{black},%
+	stringstyle=\color{mylilas},
+	commentstyle=\color{mygreen},%
+	showstringspaces=false,%without this there will be a symbol in the places where there is a space
+	numbers=left,%
+	numberstyle={\tiny \color{black}},% size of the numbers
+	numbersep=9pt, % this defines how far the numbers are from the text
+	emph=[1]{for,break},emphstyle=[1]\color{red}, %some words to emphasise
+	%emph=[2]{word1,word2}, emphstyle=[2]{style},    
+}
+
+%layout
+\pagestyle{fancy}	%permette di modificare a piacere il layout
+\fancyhead{} 	%elimina testatine pre-esistenti
+\fancyfoot{}	%elimina piedi pre-esistenti
+\setlength{\headheight}{15pt}	%dimensioni testatina
+\renewcommand{\chaptermark}[1]{\markboth{\thechapter.\ #1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection \ #1}{}} 
+
+\cfoot[{\leftmark}]{\thepage} %piè di pagina centro, numero di pagina
+\lhead[{\thepage}]{\rightmark} %testatina di sinistra, titolo sezione numerato
+
+\begin{document}
+	\author{Leonardo Acquaroli}
+	\title{DEM: Problem Set 1}
+	\pagenumbering{arabic}
+	\thispagestyle{empty}
+	
+	
+	\begin{center}
+		\Large
+		\textsc{Università degli Studi di Milano}\\
+		\vspace{-0.4cm}
+		\rule{\textwidth}{0.1mm}\\
+		\large
+		\textsc{Data Science for Economics}\\ 
+		\begin{figure}[H]
+			\centering
+			\includegraphics[width=0.7\linewidth]{"logounimi.png"}
+			\label{fig:unimi}
+		\end{figure}
+		\vfill
+		\Large
+		\textsc{Dynamic Economic Modeling: Assignment 1}
+	\end{center}
+	\vfill
+	
+	%%%%%% 
+	\hfill
+	\begin{tabular}[t]{r}
+		Student:\\
+		Leonardo Acquaroli\\
+	\end{tabular}
+	%%%%%%
+	\vfill
+	\begin{center}
+		\normalsize
+		\rule{8cm}{0.1mm}\\
+		\bigskip
+		ACADEMIC YEAR 2022-2023
+	\end{center}
+
+\chapter*{1 Consumption with different generations}
+An economy is composed of identical individuals. Each individual lives for 2 periods (you may imagine them as adulthood and old age). Individuals may work during the first period of their life for a proportion L of the day, for an income equal to wL. In the second period they retire and consume their remaining lifetime savings. Their lifetime utility is given by:
+\begin{equation}\label{utility}
+U = \log(C_1) + \log(C_2) + \log(1-L),
+\end{equation}
+where $ C_i $ is consumption in period $ i $.
+\section*{(a)}
+\textit{If the rate of interest on savings is R, write down the individual's budget constraints for both periods, and then combine them in a lifetime (inter-temporal) budget constraint.}
+\subsection*{Solution}
+The budget constraints for the two periods are
+\[\begin{cases}
+	C_1 + S_1 = wL \\
+	C_2 + S_2 = (1+R)S_1,
+\end{cases}
+\]
+where $ S_2 = 0 $ because of the assumption for which the agent cannot die in debt or with savings left.
+Therefore, solving for $ S_1 $, the inter-temporal budget constraint (IBC) is given by
+\begin{equation}\label{IBC_1}
+	IBC: C_1 + \frac{C_2}{(1+R)} = wL.
+\end{equation}
+\section*{(b)}
+\textit{Solve for optimal consumption each period and the optimal work effort. Comment on
+what you find.}
+\subsection*{Solution}
+By plugging (\ref{IBC_1}) in (\ref{utility}) we obtain 
+\begin{equation}
+	U = \log\bigg(wL - \frac{C_2}{1+R}\bigg) + \log(C_2) + \log(1-L).
+\end{equation}
+We now derive FOCs by computing the first order partial derivatives and setting them equal to zero.
+\[
+\frac{\partial{U}}{\partial{C_2}} = \frac{1}{C_2} - \frac{1}{w(1+R)L -C_2} = 0
+\]
+when 
+\[
+w(1+R)L - 2C_2 = 0, 
+\]
+giving 
+\begin{equation}\label{c2}
+	C_2 = \frac{w(1+R)L}{2}.
+\end{equation}
+On the other hand
+\[
+\frac{\partial{U}}{\partial{L}} = \frac{w(1+R)}{w(1+R)L -C_2}- \frac{1}{1-L} = 0
+\]
+when 
+\[
+w(1+R) - 2w(1+R)L + C_2 = 0, 
+\]
+giving 
+\begin{equation}\label{l}
+	L = \frac{1}{2}\bigg(1+\frac{C_2}{w(1+R)}\bigg)
+\end{equation}
+By substituting (\ref{l}) into (\ref{c2}) we get
+\begin{equation}\label{eq: optimum_b_C2_L}
+    \begin{split}
+            C_2^* &= \frac{w(1+R)}{3}, \\
+		L^* &= \frac{2}{3}
+    \end{split}
+\end{equation}
+and thus
+\begin{equation}\label{eq: optimum_b_C1}
+		C_1^* = \frac{w}{3}.
+\end{equation}
+
+This result highlights that the individual is willing to work the majority of his day ($\frac{2}{3}$), independently of the hourly wage. In other words, the agent wants to reserve $\frac{1}{3}$ of his time to leisure and makes decisions about consumption only on the basis of the (exogenous) hourly wage $w$ and interest rate $R$. We can also notice that there is a direct relation between consumption in the second period ($C_2$) and the interest rate $R$. Indeed, since L is constant, the individual will benefit of greater interests ($C_1$ is independent of $R$) that will allow the agent to consume more in period 2. Last but not least, note that this attitude strongly depends on the utility function (another individual might want to bind work supply to wage).
+\section*{(c)}
+\textit{The government introduces a fixed pension paid to individuals in the second period
+of their lives, funded by a "lump sum tax" paid by those who work. Re-write the
+inter-temporal budget constraint. What will be the impact of the pension on consumption and labour supply decisions of the young? What about the old when the pension is introduced? Give intuition for your answers.}
+\subsection*{Solution}
+Let $ T $ be the amount of the lump sum tax and so the amount of the fixed pension. The IBC is found by 
+\[
+\begin{cases}
+    C_1 + S_1 = wL - T \\
+    C_2 + S_2 = (1+R)S_1 +T
+\end{cases}
+\]
+where $S_2$ is zero. Solving for $S_1$ we find
+\[
+C_2 = (1+R)(wL-T-C_1) + T
+\]
+that we can rearrange into
+\[
+IBC: C_2 = (1+R)(wL-C_1) - RT
+\]
+We can substitute it into the utility function and derive FOCs, bearing in mind that we want to study the impact on the young individual's behaviour.
+\[
+\frac{\partial{U}}{\partial{C_1}} = \frac{1}{C_1} - \frac{1+R}{(1+R)(wL-C_1) - RT} = 0
+\]
+brings us to 
+\[
+C_1 = \frac{(1+R)(wL-C_1) - RT}{(1+R)},
+\]
+that gives
+\begin{equation}\label{youngc}
+	C_1 = \frac{1}{2}\bigg(wL-\frac{RT}{(1+R)}\bigg).
+\end{equation}
+As regards the labour supply,
+\[
+\frac{\partial{U}}{\partial{L}} = \frac{w(1+R)}{(1+R)(wL-C_1) - RT} - \frac{1}{(1-L)} = 0
+\]
+brings us to
+\[
+L = 1 - \frac{(1+R)(wL-C_1) - RT}{w(1+R)},
+\]
+and so
+\begin{equation}\label{youngl}
+	L = \frac{1}{2} + \frac{(1+R)C_1+RT}{2w(1+R)}
+\end{equation}
+By substitution we can solve the system and obtain
+\begin{equation}\label{optimalpension}
+	\begin{cases}
+		C_1^* &= \frac{1}{3}\bigg(w - \frac{RT}{(1+R)}\bigg), \\
+		L^* &= \frac{1}{3}\bigg(2 + \frac{RT}{w(1+R)}\bigg).
+	\end{cases}
+\end{equation}
+We can easily see that as T increases, the individual works more to compensate the loss of income. Moreover, the worker also starts consuming less in period 1, as $ C_1^* $ is decreasing in $T$. Furthermore, we can note that if wage increases, optimal labour supply decreases and so we immediately spot the difference with the situation in absence of taxes and pension of point b). Recall that in point b) the young was working a constant portion of the day, whereas now the labour supply is a function also of $w$.
+
+For what concerns the individual in the second period, we can plug $ C_1^* $ into the IBC to obtain 
+\begin{equation}\label{oldC}
+	C_2^* = \frac{1}{3}\bigg(w(1+R) - RT\bigg).
+\end{equation} 
+In period 2 the individual consumes less for higher values of $T$ even if it is the amount of the pension he receive. This happens because of consumption smoothing. In fact, you can see that the derivative of $C_2$ with respect to $T$
+\[
+    \frac{\partial{C_2}}{\partial{T}} = -\frac{1}{3}R
+\]
+is negative but its absolute value is less then 1, if we assume $0<R<1$.
+In other words, for consumption smoothing, taxes of period 1 also decrease the consumption of period 2.
+\newpage
+\section*{(d)}
+\textit{The pension is now funded by an income tax, i.e., a tax equal to $ T wL $, where $ T $ is the tax rate. Will the behaviour of the young change in the case where R = 0? Interpret this result.}
+\subsection*{Solution}
+Let's start from obtaining the new IBC from the system of the two periods' constraints
+\[
+\begin{cases}
+        C_1 + S_1 = wL(1-T)\\
+        C_2 + S_2 = (1+R)S_1 + wLT
+\end{cases}    
+\]
+Now, recalling that $S_2=0$ and $R=0$ we get
+\[
+\begin{cases}
+    S_1 = wL(1-T) - C_1\\
+    S_1 = C_2 - wLT 
+\end{cases}
+\]
+and solving for $S_1$
+\[
+   IBC: C_2 = wL - C_1
+\] 
+Substitute it into the utility function and derive the FOCs:
+\[
+\begin{cases}
+	\frac{\partial{U}}{\partial{C_1}} = 0 &\Rightarrow C_1 = \frac{wL}{2} \\
+	\frac{\partial{U}}{\partial{L}} = 0 &\Rightarrow L = \frac{1}{2} + \frac{C_1}{2w}
+\end{cases}
+\]
+Finally, it follows that the new optimal choice for the worker is:
+\[
+\begin{cases}
+		C_1^* = \frac{w}{3}\\
+		L^* = \frac{2}{3}
+\end{cases}
+\]
+We can conclude, from this optimal situation, that an income tax does not affect agent's choices. In this case $R$ was set to zero and that made the difference with respect to the optimality (\ref{eq: optimum_b_C2_L}) in point b).
+
+\chapter*{2 Stylised facts of the business cycle}
+A business cycle is made of an expansion (boom) and a contraction (recession). During the
+expansion all good things (GDP, employment, productivity, and so on) tend to go up, or
+grow faster than "normal", and bad things (e.g. unemployment) tend to fall. During the
+contraction good things go down and bad things go up.\\
+The code to obtain the tables is stored \href{https://github.com/LeonardoAcquaroli/dem_assignements/blob/main/nbps1.ipynb}{here} and was written in collaboration with Davide Matta. \href{https://github.com/DavideMatta/DynamicEconomicModeling/tree/main}{My colleague's GitHub repository} also contains the source files cited in this document.\\
+Tables were built upon those data:
+\cite{averagewage}, \cite{averagehours}, \cite{cpi}, \cite{gdp}, \cite{gnp}, \cite{hoursworked}, \cite{durableconsumption}, \cite{nondurableconsumption}, \cite{laborproductivity}, \cite{employment}, \cite{consumptionpercapita}, \cite{grossinvestment}, \cite{population}, \cite{productivity}, \cite{discountrate}
+
+
+\section*{(a)}
+\textit{Replicate Table 1 and 2 for the US economy from - ideally - 1950 Q1 to the newest data you can find (either 2020 or 2023). You can use real GDP instead of GNP if you want.}
+\subsection*{Solution}
+
+\begin{tabular}{cc}
+\centering
+\textbf{} & \textbf{Sd\%} \\
+\hline
+GNP & 1.66 \\
+CND & 1.41 \\
+CD & 4.41 \\
+H & 1.82 \\
+AveH & 0.42 \\
+L & 0.97 \\
+GNP/L & 0.87 \\
+AveW & 1.04 \\
+\end{tabular}
+
+\begin{table}[h]
+\centering
+\caption{Cyclical Behaviour of the US Economy (1964Q1-2019Q4)}
+\label{tab:tab1}
+\begin{tabular}{ccccccccc}
+\hline
+Shift & GNP & CND & CD & H & AveH & L & GNP/L & AveW \\ \hline
+-4 & 0.30 & 0.46 & 0.09 & 0.60 & 0.07 & 0.68 & -0.07 & -0.04 \\
+-3 & 0.51 & 0.57 & 0.30 & 0.73 & 0.27 & 0.79 & 0.11 & 0.11 \\
+-2 & 0.72 & 0.66 & 0.51 & 0.81 & 0.46 & 0.84 & 0.34 & 0.26 \\
+-1 & 0.89 & 0.69 & 0.70 & 0.82 & 0.63 & 0.81 & 0.55 & 0.41 \\
+0 & 1.00 & 0.64 & 0.86 & 0.75 & 0.71 & 0.71 & 0.75 & 0.56 \\
+1 & 0.89 & 0.51 & 0.84 & 0.58 & 0.64 & 0.52 & 0.69 & 0.60 \\
+2 & 0.72 & 0.34 & 0.75 & 0.37 & 0.51 & 0.31 & 0.61 & 0.58 \\
+3 & 0.51 & 0.13 & 0.62 & 0.15 & 0.34 & 0.10 & 0.46 & 0.52 \\
+4 & 0.30 & -0.06 & 0.46 & -0.04 & 0.18 & -0.09 & 0.30 & 0.43 \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Business Cycle Statistics for the US Economy from "Resuscitating Real Business
+Cycles"}
+\label{tab:tab2}
+\begin{tabular}{cccccc}
+\hline
+Variable & Stdev & Pctstd & Relstdev & Autocorr & Ycorr \\ \hline
+Y & 0.001601 & 0.160094 & 1.000000 & 0.887726 & 1.000000 \\
+C & 0.001406 & 0.140561 & 0.877987 & 0.887502 & 0.923510 \\
+I & 0.007490 & 0.749009 & 4.678546 & 0.853766 & 0.877942 \\
+N & 0.001176 & 0.117567 & 0.734359 & 0.783732 & 0.702425 \\
+Y/N & 0.002047 & 0.204739 & 1.278865 & 0.875564 & 0.978165 \\
+w & 0.003491 & 0.349121 & 2.180721 & 0.890346 & 0.560687 \\
+r & 0.000084 & 0.008444 & 0.052745 & 0.798794 & 0.103452 \\
+A & 0.001622 & 0.162179 & 1.013019 & 0.711006 & 0.718788 \\ \hline
+\end{tabular}
+\end{table}
+
+\newpage
+\section*{(b)}
+\textit{Verify whether or not the following business cycle facts from Cooley and Prescott
+(1995) still hold today:}
+\begin{enumerate}
+    \item{Consumption is smoother than output.}
+    \item{Volatility in GNP is similar in magnitude to volatility in total hours.}
+    \item{Volatility in employment is greater than volatility in average hours. Therefore most labour market adjustments operate on the extensive rather than intensive margin.}
+    \item{Productivity is slightly pro-cyclical.}
+    \item{Wages are less variable than productivity.}
+    \item{There is no correlation between wages and output (nor with employment for that matter).}
+\end{enumerate}
+
+\subsection*{Solution}
+
+\begin{enumerate}
+    \item From Table 2, consumption is slightly smoother than output ({$stdev(C) = 0.001406$ against $stdev(Y) = 0.001601$}).
+    \item Volatility in GNP is similar in magnitude to volatility in total hours. We can check it by looking at the Sd\% separated table for Table 1 and see that their standard deviations are 1.66 and 1.82.
+    \item Volatility in employment is greater than volatility in average hours. Indeed, their standard deviations are 0.97 against 0.42. This figures justify the actions in labour market on the extensive rather than intensive margin.
+    \item Productivity in this updated table is more correlated with output than in the table of the cited paper. So it is more pro-cyclical.
+    \item In the updated Sd\% of Table 1, wages are more variable than productivity ($\%stdev(AveW) = 1.04$ against $\%stdev(GNP/L) = 0.87$).
+    \item Wages and current/future output are correlated in a good extent (from 0.43 for GNP in t+4 to 0.60 for GNP in t+1) but the same does not hold so strictly for the correlation with past output (see column \textit{AveW}).
+    Correlation between GNP and employment (column \textit{L}) seems to show that when $GNP_{t}$ is more correlated with wages ($AveW_{t}$) it looses its correlation with employment ($L_{t}$) and viceversa.
+\end{enumerate}
+
+\section*{(c)}
+\textit{Verify whether or not the following business cycle facts from King and Rebelo (1999) still hold today:}
+
+
+\begin{enumerate}
+  \item Consumption of non-durables is less volatile than output.
+  \item Consumer durables are more volatile than output.
+  \item Investment is three times more volatile than output.
+  \item Government expenditures are less volatile than output.
+  \item Total hours worked are about the same volatility as output.
+  \item Capital is much less volatile than output.
+  \item Employment is as volatile as output, while hours per worker are much less volatile than output.
+  \item Labour productivity is less volatile than output.
+  \item The real wage is much less volatile than output.
+\end{enumerate}
+
+
+
+\subsection*{Solution}
+For this solution see Table \ref{tab:tab2}.
+
+\begin{enumerate}
+  \item Consumption of non-durables is still less volatile than output since their standard deviations (from Sd\% annex of Table 1) are 1.41 against 1.66.
+  \item Consumption of durables is more volatile than output. We can check their standard deviations from the same annex to Table 1 and see that ($\%stdev(CD) = 4.41$ against $\%stdev(GNP) = 1.66$)
+  \item Investment is actually almost 5 times more volatile than output ($\frac{0.007490}{0.001601} = 4.68$).
+  \item Since we do not have directly Government expenditures (G) we shuld compute it as $G = Y-C-I$ and compute its standard deviation. Then we would be able to compare it with output volatility.
+  \item Total hours worked have about the same volatility as output and we can see it both from Table 1's annex ($\%stdev(H) = 1.82$ against $\%stdev(GNP) = 1.66$) and Table 2 ($stdev(N) = 0.001176$ against $\%stdev(Y) = 0.001601$).
+  \item We do not have capital but if we approximate it with $K_{t+1} = I + (1-\delta)K_{t}$ we should see that it is still less volatile than output since capital choice involve longer-term strategies.
+  \item Employment is less volatile than output (see \textit{L} and \textit{GNP} in Sd\% annex to Table 1), while hours per worker are a bit more volatile than output (see column \textit{stdev}, Table 2).
+  \item Labour productivity is more volatile than output (0.002047 against 0.001601).
+  \item The real wage is more than two times more volatile than output (0.003491 against 0.001601).
+\end{enumerate}
+
+
+\newpage
+\printbibliography
+
+\end{document}
