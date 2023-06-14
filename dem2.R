@@ -340,13 +340,29 @@ table2
 
 # There is a question that asks for relation between Y and G. Thus I get G
 
-GNP <- fredr(
+G <- fredr(
   series_id = 'A955RX1Q020SBEA',
   observation_start = as.Date("1971-01-01"),
   observation_end = as.Date("2023-01-01"),
-  frequency = 'q', #quarterly data
+  frequency = 'q',
   units = "log"
 )
-#this produces a 5 col tibble, we keep only the date and the values
-GNP <- GNP[-c(2, 4, 5)]
-colnames(GNP) <- c("date","GNP")
+
+# Keep only the date and value columns
+G <- G[-c(2, 4, 5)]
+colnames(G) <- c("date", "G")
+
+# Filter G
+hp_filter_G <- hpfilter(G$G, freq = 1600, type = "lambda", drift = FALSE)
+
+# Extract the two components
+cyclical_comp_G <- hp_filter_G$cycle
+trend_comp_G <- hp_filter_G$trend
+
+# Fill the empty data frames with the obtained values
+cycle_G <- data.frame(date = G$date, G = cyclical_comp_G)
+trend_G <- data.frame(date = G$date, G = trend_comp_G)
+
+# find sd of G
+sd_G <- sd(cycle_G$G)
+table2
